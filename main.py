@@ -50,7 +50,7 @@ def boris_push(x, t, v, q, m, dt):
 def plot_trajectory(xs, vs, step=5):
     """
     Plot the particle trajectory with velocity arrows.
-    
+
     xs : array of shape (nsteps+1, 3), positions
     vs : array of shape (nsteps+1, 3), velocities
     step : spacing between arrows (default every 5th point)
