@@ -1,4 +1,5 @@
 import numpy as np
+import matplotlib.pyplot as plt
 
 # -------------------------------------------------
 # Define fields
@@ -15,17 +16,17 @@ def magnetic_field(x, t):
 # -------------------------------------------------
 # Boris pusher
 # -------------------------------------------------
-def boris_push(xm, v, q, m, dt, t):
+def boris_push(x, t, v, q, m, dt):
     """
     Advance velocity v by one full step using Boris scheme.
-    xm: position at half step (x_{n+1/2})
-    v : velocity at time step n
+    x: position at half step (x_{n+1/2})
+    t: time at half step (t_{n+1/2})
+    v: velocity at time step n
     q, m: charge and mass
     dt: timestep
-    t: current time
     """
-    E = electric_field(xm, t)
-    B = magnetic_field(xm, t)
+    E = electric_field(x, t)
+    B = magnetic_field(x, t)
 
     # Half acceleration by E
     v_minus = v + (q * dt / (2 * m)) * E
@@ -43,6 +44,39 @@ def boris_push(xm, v, q, m, dt, t):
 
     return v_new
 
+# -------------------------------------------------
+# Plot trajectory
+# -------------------------------------------------
+def plot_trajectory(xs, vs, step=5):
+    """
+    Plot the particle trajectory with velocity arrows.
+    
+    xs : array of shape (nsteps+1, 3), positions
+    vs : array of shape (nsteps+1, 3), velocities
+    step : spacing between arrows (default every 5th point)
+    """
+    fig, ax = plt.subplots(figsize=(6,6))
+
+    # Plot trajectory (projection on x-y plane)
+    ax.scatter(xs[:,0], xs[:,1], s=15, c="blue", label="positions")
+
+    # Add velocity arrows
+    ax.quiver(
+        xs[::step,0], xs[::step,1],   # arrow bases (positions)
+        vs[::step,0], vs[::step,1],   # arrow directions (velocities)
+        angles='xy', scale_units='xy', scale=5, color="red", width=0.004,
+        label="velocity"
+    )
+
+    # Format
+    ax.set_xlabel("x")
+    ax.set_ylabel("y")
+    ax.set_aspect("equal", adjustable="box")
+    ax.legend()
+    ax.set_title("Boris Pusher: Trajectory with Velocities")
+
+    plt.show()
+
 
 # -------------------------------------------------
 # Main particle loop
@@ -57,19 +91,18 @@ def simulate(x0, v0, q, m, dt, nsteps):
     v = v0.copy()
 
     # Storage
-    xs = [x0]
+    xs = [x_half]
     vs = [v0]
 
     for n in range(nsteps):
         # Velocity update (Boris)
-        v = boris_push(x_half, v, q, m, dt, n * dt)
+        v = boris_push(x_half, (n + 1/2) * dt, v, q, m, dt)
 
         # Position update
         x_half = x_half + v * dt
-        x = x_half - 0.5 * dt * v  # bring back to integer time
 
         # Store
-        xs.append(x.copy())
+        xs.append(x_half.copy())
         vs.append(v.copy())
 
     return np.array(xs), np.array(vs)
@@ -83,7 +116,7 @@ if __name__ == "__main__":
     q = -1.0   # charge
     m = 1.0    # mass
     dt = 0.1
-    nsteps = 100
+    nsteps = int(20*np.pi)
 
     # Initial conditions
     x0 = np.array([1.0, 0.0, 0.0])
@@ -91,11 +124,4 @@ if __name__ == "__main__":
 
     xs, vs = simulate(x0, v0, q, m, dt, nsteps)
 
-    # Quick check
-    import matplotlib.pyplot as plt
-    plt.plot(xs[:,0], xs[:,1])
-    plt.xlabel("x")
-    plt.ylabel("y")
-    plt.title("Boris pusher trajectory")
-    plt.axis("equal")
-    plt.show()
+    plot_trajectory(xs, vs, step=5)
