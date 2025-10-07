@@ -1,8 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from plot import plot_trajectory, plot_compare, plot_errors
-from plasma import cyclotron_xy
-
+from plasma import cyclotron_xy, ExB_xy
 
 # -------------------------------------------------
 # Define fields
@@ -99,25 +98,32 @@ if __name__ == "__main__":
     x0 = np.array([1.0, 0.0, 0.0])
     v0 = np.array([0.0, 1.0, 0.0])
 
+    E0 = np.array([0.0, 1.0, 0.0])
+    B0 = np.array([0.0, 0.0, 1.0])
+
 
     # Numerical trajectory
     xs_num, vs_num = simulate(x0, v0, q, m, dt, nsteps)
     
-    plot_trajectory(xs_num, vs_num, step=5)
+    
+    # plot_trajectory(xs_num, vs_num, step=5)
 
     # # Analytical trajectory : cyclotron motion
-    # times = np.arange(0, T, dt) +dt/2
-    # x_an, v_an = cyclotron_xy(x0, v0, q, m, B0, times)
+    times = np.arange(0, NT*T, dt) + dt/2
+    # x_cyc, v_cyc = cyclotron_xy(x0, v0, q, m, B0[2], times)
 
+    x_ExB, v_ExB = ExB_xy(x0, v0, q, m, E0, B0, times)
+
+    # print(vs_num[0,:], v_ExB[0,:])
 
     # # RMS Error on xy positions
-    # diff = xs_num[:, :2] - x_an[:, :2]
-    # rms = np.sqrt(np.mean(np.sum(diff**2, axis=1)))
-    # print(f"RMS position error (xy): {rms:.3e}")
+    diff = xs_num[:, :2] - x_ExB[:, :2]
+    rms = np.sqrt(np.mean(np.sum(diff**2, axis=1)))
+    print(f"RMS position error (xy): {rms:.3e}")
 
 
     # Plots to compare
-    # plot_compare(xs_num, vs_num, x_an, v_an, step=8, show_arrows=True)
-    # plot_errors(times, diff)
+    plot_compare(xs_num, vs_num, x_ExB, v_ExB, step=8, show_arrows=True)
+    plot_errors(times, diff)
 
 
