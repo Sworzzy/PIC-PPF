@@ -2,6 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from plot import plot_trajectory, plot_compare, plot_errors
 from plasma import cyclotron_xy, ExB_xy
+from B_field import MagneticField
 
 # -------------------------------------------------
 # Define fields
