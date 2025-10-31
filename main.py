@@ -7,20 +7,25 @@ from B_field import MagneticField
 # -------------------------------------------------
 # Define fields
 # -------------------------------------------------
-def electric_field(x, t):
-    """Return E(x,t) as a numpy array"""
-    return np.array([0.0, 1.0, 0.0])  # Example: zero field
 
-def magnetic_field(x, t):
+
+# def electric_field(x, t):
+#     """Return E(x,t) as a numpy array"""
+#     return np.array([0.0, 1.0, 0.0])  # Example: zero field
+
+def magnetic_field(x, t,B0,B0_space):
     """Return B(x,t) as a numpy array"""
-    return np.array([0.0, 0.0, 1.0])  # Example: uniform Bz field
 
+    #interpolation of the magnetic field values
+    Bx = np.interp(x[0], B0_space[0], B0[0][:,0,0])
+    By = np.interp(x[1], B0_space[1], B0[1][0,:,0])
+    Bz = np.interp(x[2], B0_space[2], B0[2][0,0,:])
 
-
+    return np.array([Bx, By, Bz])
 # -------------------------------------------------
 # Boris pusher
 # -------------------------------------------------
-def boris_push(x, t, v, q, m, dt):
+def boris_push(x, t, v, q, m, dt,B0,E0,B0_space):
     """
     Advance velocity v by one full step using Boris scheme.
     x: position at half step (x_{n+1/2})
@@ -29,8 +34,9 @@ def boris_push(x, t, v, q, m, dt):
     q, m: charge and mass
     dt: timestep
     """
-    E = electric_field(x, t)
-    B = magnetic_field(x, t)
+    # E = electric_field(x, t)
+    E=E0
+    B = magnetic_field(x, t,B0,B0_space)
 
     # Half acceleration by E
     v_minus = v + (q * dt / (2 * m)) * E
@@ -53,7 +59,7 @@ def boris_push(x, t, v, q, m, dt):
 # -------------------------------------------------
 # Time loop
 # -------------------------------------------------
-def simulate(x0, v0, q, m, dt, nsteps):
+def simulate(x0, v0, q, m, dt, nsteps, B0, E0,B0_space):
     """
     Simulate a particle trajectory using the Boris scheme.
     Returns arrays of x and v.
@@ -68,7 +74,7 @@ def simulate(x0, v0, q, m, dt, nsteps):
 
     for n in range(nsteps):
         # Velocity update (Boris)
-        v = boris_push(x_half, (n + 1/2) * dt, v, q, m, dt)
+        v = boris_push(x_half, (n + 1/2) * dt, v, q, m, dt, B0, E0,B0_space)
 
         # Position update
         x_half = x_half + v * dt
@@ -102,9 +108,19 @@ if __name__ == "__main__":
     E0 = np.array([0.0, 1.0, 0.0])
     B0 = np.array([0.0, 0.0, 1.0])
 
+    magnetic_field=MagneticField(k=0.1, zc=1000, r=np.linspace(0.1,1500,15), theta=np.linspace(0,2*np.pi,36), z=np.linspace(-2000,2000,25))
+    Bx,By,Bz,X,Y,Z=magnetic_field.Compute_field()
+    B0=[Bx,By,Bz]
+    x=X[:,0,0]
+    y=Y[0,:,0]
+    z=Z[0,0,:]
+    B0_space=[x,y,z]
+
+    E0=np.array([0.0, 0.0, 0.0])
+   
 
     # Numerical trajectory
-    xs_num, vs_num = simulate(x0, v0, q, m, dt, nsteps)
+    xs_num, vs_num = simulate(x0, v0, q, m, dt, nsteps,B0,E0,B0_space)
     
     
     # plot_trajectory(xs_num, vs_num, step=5)
