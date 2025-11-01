@@ -40,9 +40,9 @@ class MagneticField:
         magnitude=np.sqrt(Br**2+Bt**2+Bz**2)
         magnitude[magnitude == 0] = 1
 
-        Br/=magnitude
-        Bz/=magnitude
-        Bt/=magnitude
+        # Br/=magnitude
+        # Bz/=magnitude
+        # Bt/=magnitude
 
         Bz[:Br.shape[0]//2,:,:]*=-1  #inverser le sens du champ magnétique dans la moitié inférieure
         Br[:Br.shape[0]//2,:,:]*=-1  #inverser le sens du champ magnétique dans la moitié inférieure
@@ -111,10 +111,10 @@ def main():
     # magnetic_field=MagneticField(k, zc,r,theta,z)
     magnetic_field=MagneticField(k, zc,x,y,z)
 
-    # R=magnetic_field.R
+    R=magnetic_field.R
     Bx,By,Bz,X,Y,Z=magnetic_field.Compute_field()
-    # Br=magnetic_field.Br
-    # gradient_magnitude=magnetic_field.Compute_gradient()
+    Br=magnetic_field.Br
+    gradient_magnitude=magnetic_field.Compute_gradient()
 
     x=np.unique(X)
     y=np.unique(Y)
@@ -135,8 +135,8 @@ def main():
     # plt.show()
 
     plt.figure()
-    # plt.pcolormesh(Z[:,e,:],X[:,e,:]gradient_magnitude[:,e,:],cmap='viridis')
-    # plt.colorbar(label='|grad(B)|')
+    plt.pcolormesh(Z[:,e,:],X[:,e,:],gradient_magnitude[:,e,:],cmap='viridis')
+    plt.colorbar(label='|grad(B)|')
     plt.quiver(Z[:,e,:],X[:,e,:],Bz[:,e,:],Bx[:,e,:],color='white',label='B',width=0.003,scale=50,headwidth=3)
     plt.xlabel('z')
     plt.ylabel('x')

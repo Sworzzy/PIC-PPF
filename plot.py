@@ -5,7 +5,18 @@ import numpy as np
 # -------------------------------------------------
 # Plot trajectory of single particle
 # -------------------------------------------------
-def plot_trajectory(xs, vs, step=5):
+
+def plot_trajectory_mirror(xs_num,t):
+    plt.figure()
+    plt.scatter(xs_num[:,2], xs_num[:,1], c=t, cmap='viridis', s=5)  # s controls point size
+    plt.colorbar(label='Time')
+    plt.xlabel('z')
+    plt.ylabel('y')
+    plt.xlim(-2000,2000)
+    plt.grid()
+    plt.show()
+
+def plot_trajectory(xs, vs, step=5,axis=[0,1]):
     """
     Plot the particle trajectory with velocity arrows.
 
@@ -20,22 +31,64 @@ def plot_trajectory(xs, vs, step=5):
 
     # Add velocity arrows
     ax.quiver(
-        xs[::step,0], xs[::step,1],   # arrow bases (positions)
-        vs[::step,0], vs[::step,1],   # arrow directions (velocities)
+        xs[::step,axis[0]], xs[::step,axis[1]],   # arrow bases (positions)
+        vs[::step,axis[0]], vs[::step,axis[1]],   # arrow directions (velocities)
         angles='xy', scale_units='xy', scale=5, color="red", width=0.004,
+        label="velocity"
+    )
+    for i in range(2):
+        if axis[i]==0:
+            ax_label="x"
+        elif axis[i]==1:
+            ax_label="y"
+        elif axis[i]==2:
+            ax_label="z"
+        else:
+            ax_label="?"
+
+        if i==0:
+            label_x=ax_label
+        else:
+            label_y=ax_label
+    # Format
+    ax.set_xlabel(label_x)
+    ax.set_ylabel(label_y)
+    # ax.set_aspect("equal", adjustable="box")
+    ax.legend()
+    ax.set_title("Boris Pusher: Trajectory with Velocities")
+
+    plt.show()
+
+def plot_trajectory_3d(xs, vs, step=5):
+    """
+    Plot the particle trajectory in 3D with velocity arrows.
+
+    xs : array of shape (nsteps+1, 3), positions
+    vs : array of shape (nsteps+1, 3), velocities
+    step : spacing between arrows (default every 5th point)
+    """
+    fig = plt.figure(figsize=(8,8))
+    ax = fig.add_subplot(111, projection='3d')
+
+    # Plot trajectory
+    ax.plot(xs[:,0], xs[:,1], xs[:,2], color="blue", label="trajectory")
+
+    # Add velocity arrows
+    ax.quiver(
+        xs[::step,0], xs[::step,1], xs[::step,2],   # arrow bases (positions)
+        vs[::step,0], vs[::step,1], vs[::step,2],   # arrow directions (velocities)
+        length=10, normalize=True, color="red", linewidth=1,
         label="velocity"
     )
 
     # Format
     ax.set_xlabel("x")
     ax.set_ylabel("y")
-    ax.set_aspect("equal", adjustable="box")
+    ax.set_zlabel("z")
     ax.legend()
-    ax.set_title("Boris Pusher: Trajectory with Velocities")
+    ax.set_title("Boris Pusher: 3D Trajectory with Velocities")
 
     plt.show()
-
-
 # -------------------------------------------------
 # Plot comparing numeric and analytic solutions ---
 # -------------------------------------------------

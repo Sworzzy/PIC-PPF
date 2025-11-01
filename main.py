@@ -1,6 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from plot import plot_trajectory, plot_compare, plot_errors,plot_trajectory_3d
+from plot import plot_trajectory, plot_compare, plot_errors,plot_trajectory_3d,plot_trajectory_mirror
 from plasma import cyclotron_xy, ExB_xy
 from B_field import MagneticField
 
@@ -99,11 +99,13 @@ if __name__ == "__main__":
     omega = q*B0/m
     T=2*np.pi/abs(omega)
     dt = 0.1
-    NT = 100
+    NT = 200
     nsteps = int(NT*T/dt)
+    t=np.linspace(0,NT,nsteps+1)
 
-    x0 = np.array([0.0,0.0, 500.0])
-    v0 = np.array([0.0, 100.0, 50.0])
+    x0 = np.array([0.0,100,0.0])
+    v0 = np.array([0.0, 100.0, 110.0])
+    theta_cone=np.arccos(np.dot(v0,np.array([0.0,0.0,1.0]))/np.linalg.norm(v0))
     # v0 = np.array([0.0, 10.0, 100.0])
 
     # x0=np.array([0
@@ -118,17 +120,30 @@ if __name__ == "__main__":
 
     E0=np.array([0.0, 0.0, 0.0])
     # B0=np.zeros_like(B0)
-   
+    Bm_real_mag_store=[]
+    for k in range(100):
+        xm=np.array([0,-100-k,1000])     
+        Bm_real=magnetic_field(xm, 0, B0, B0_space)
+        Bm_real_mag=np.linalg.norm(Bm_real)
+        Bm_real_mag_store.append(Bm_real_mag)
+    Bm_real_mag=np.mean(Bm_real_mag_store)
+    print(Bm_real_mag_store)
+
+    B0_axis=magnetic_field(np.array([0,0,0]), 0, B0, B0_space)
+    B0_axis_mag=np.linalg.norm(B0_axis)
+
+    Bm_th_mag=B0_axis_mag/np.sin(theta_cone)**2
+
+    print(Bm_real_mag,Bm_th_mag)
+    # quit()
+    print(theta_cone*180/np.pi)
 
 
     # NumericalS trajectory
     xs_num, vs_num = simulate(x0, v0, q, m, dt, nsteps,B0,E0,B0_space)
-    print(xs_num)
-    plt.figure()
-    plt.plot(xs_num[:,2],xs_num[:,1])
-    plt.xlabel('z')
-    plt.ylabel('y')
-    plt.show()
+    # print(xs_num)
+
+    plot_trajectory_mirror(xs_num,t)
 
     quit()
     plot_trajectory(xs_num, vs_num, step=5,axis=[2,1])
