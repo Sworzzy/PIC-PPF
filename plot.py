@@ -148,3 +148,20 @@ def plot_errors(times, diff) :
     ax.set_ylabel('position error (xy)')
     ax.set_title('Error vs time')
     plt.show()
+
+def plot_time_kinetic_energy(times, m, vs_num) :
+    v_norm = np.linalg.norm(vs_num, axis=1)
+    Ek_x = 0.5 * m * vs_num[:,0]**2
+    Ek_y = 0.5* m * vs_num[:,1]**2
+    Ek_z = 0.5 * m * vs_num[:,2]**2
+    Ek_tot = 0.5 * m * v_norm**2
+    plt.figure(figsize=(6,4))
+    plt.grid()
+    plt.plot(times, Ek_x, label=r'$E_{k,x}$')
+    plt.plot(times, Ek_y, label=r'$E_{k,y}$')
+    plt.plot(times, Ek_z, label=r'$E_{k,z}$')
+    plt.plot(times, Ek_tot, label=r"$E_{k, tot}$", color='black')
+    plt.xlabel('time')
+    plt.title('Kinetic energy vs time')
+    plt.legend(loc='lower left', bbox_to_anchor=(1, 0.5))
+    plt.show()
