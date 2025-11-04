@@ -13,8 +13,24 @@ from B_field import MagneticField
 #     """Return E(x,t) as a numpy array"""
 #     return np.array([0.0, 1.0, 0.0])  # Example: zero field
 
-def magnetic_field(x, t,B0,B0_space):
+def magnetic_field(x,B0,B2):
     """Return B(x,t) as a numpy array"""
+    B1=0
+
+    r= np.sqrt(x[0]**2 + x[1]**2)
+    theta= np.arctan2(x[1],x[0])
+    z= x[2]
+
+    Br=-r*z*B2
+    Bz=B0+B2*(z**2 - 0.5*r**2)
+    Bt=0
+
+    Bx= Br * np.cos(theta) - Bt * np.sin(theta)
+    By= Br * np.sin(theta) + Bt * np.cos(theta)
+    # print(Bx,By,Bz)
+    # return np.array([0,0,1])
+    return np.array([Bx,By,Bz])
+    return np.array([-B2*x[0]*x[2],-B2*x[1]*x[2],B2*(x[2]**2-0.5*x[0]**2-0.5*x[1]**2)+B0-2*B1*x[2]])
     distances = np.sqrt((B0_space[0] - x[0])**2 + (B0_space[1] - x[1])**2 + (B0_space[2] - x[2])**2)
     flat_index = np.argmin(distances)
 
@@ -22,10 +38,11 @@ def magnetic_field(x, t,B0,B0_space):
     i, j, k = np.unravel_index(flat_index, B0_space[0].shape)
 
     return np.array([B0[0][i,j,k], B0[1][i,j,k], B0[2][i,j,k]])
+
 # -------------------------------------------------
 # Boris pusher
 # -------------------------------------------------
-def boris_push(x, t, v, q, m, dt,B0,E0,B0_space):
+def boris_push(x, t, v, q, m, dt,B0,E0,B2):
     """
     Advance velocity v by one full step using Boris scheme.
     x: position at half step (x_{n+1/2})
@@ -36,7 +53,8 @@ def boris_push(x, t, v, q, m, dt,B0,E0,B0_space):
     """
     # E = electric_field(x, t)
     E=E0
-    B = magnetic_field(x, t,B0,B0_space)
+    B = magnetic_field(x,B0,B2)
+    # print(B)
 
     # Half acceleration by E
     v_minus = v + (q * dt / (2 * m)) * E
@@ -59,7 +77,7 @@ def boris_push(x, t, v, q, m, dt,B0,E0,B0_space):
 # -------------------------------------------------
 # Time loop
 # -------------------------------------------------
-def simulate(x0, v0, q, m, dt, nsteps, B0, E0,B0_space):
+def simulate(x0, v0, q, m, dt, nsteps, B0, E0,B2):
     """
     Simulate a particle trajectory using the Boris scheme.
     Returns arrays of x and v.
@@ -74,7 +92,7 @@ def simulate(x0, v0, q, m, dt, nsteps, B0, E0,B0_space):
 
     for n in range(nsteps):
         # Velocity update (Boris)
-        v = boris_push(x_half, (n + 1/2) * dt, v, q, m, dt, B0, E0,B0_space)
+        v = boris_push(x_half, (n + 1/2) * dt, v, q, m, dt, B0, E0,B2)
 
         # Position update
         x_half = x_half + v * dt
@@ -92,20 +110,22 @@ def simulate(x0, v0, q, m, dt, nsteps, B0, E0,B0_space):
 # -------------------------------------------------
 if __name__ == "__main__":
 
+    # q = -1.6e-19
+    # m = 1e-30
+    B0 = 1.0
     q = -1.0
     m = 1.0
-    B0 = 1.0
 
     omega = q*B0/m
     T=2*np.pi/abs(omega)
     dt = 0.1
-    NT = 200
+    NT = 10
     nsteps = int(NT*T/dt)
     t=np.linspace(0,NT,nsteps+1)
 
-    x0 = np.array([0.0,100,0.0])
-    v0 = np.array([0.0, 100.0, 110.0])
-    theta_cone=np.arccos(np.dot(v0,np.array([0.0,0.0,1.0]))/np.linalg.norm(v0))
+    x0 = np.array([0.0,0,0.0])
+    v0 = np.array([1.0, 1.0, 0.50])
+    # theta_cone=np.arccos(np.dot(v0,np.array([0.0,0.0,1.0]))/np.linalg.norm(v0))
     # v0 = np.array([0.0, 10.0, 100.0])
 
     # x0=np.array([0
@@ -113,34 +133,36 @@ if __name__ == "__main__":
     # E0 = np.array([0.0, 1.0, 0.0])
     # B0 = np.array([0.0, 0.0, 1.0])
 
-    B_field=MagneticField(k=0.1, zc=1000, r=np.linspace(0.1,1500,15), theta=np.linspace(0,2*np.pi,36), z=np.linspace(-2000,2000,25))
-    Bx,By,Bz,X,Y,Z=B_field.Compute_field()
-    B0=[Bx,By,Bz]
-    B0_space=[X,Y,Z]
+    # B_field=MagneticField(k=0.1, zc=1000, r=np.linspace(0.1,1500,15), theta=np.linspace(0,2*np.pi,36), z=np.linspace(-2000,2000,25))
+    # Bx,By,Bz,X,Y,Z=B_field.Compute_field()
+    # B0=[Bx,By,Bz]
+    # B0_space=[X,Y,Z]
 
     E0=np.array([0.0, 0.0, 0.0])
-    # B0=np.zeros_like(B0)
-    Bm_real_mag_store=[]
-    for k in range(100):
-        xm=np.array([0,-100-k,1000])     
-        Bm_real=magnetic_field(xm, 0, B0, B0_space)
-        Bm_real_mag=np.linalg.norm(Bm_real)
-        Bm_real_mag_store.append(Bm_real_mag)
-    Bm_real_mag=np.mean(Bm_real_mag_store)
-    print(Bm_real_mag_store)
+    # # B0=np.zeros_like(B0)
+    # Bm_real_mag_store=[]
+    # for k in range(100):
+    #     xm=np.array([0,-100-k,1000])     
+    #     Bm_real=magnetic_field(xm, B0, B0_space)
+    #     Bm_real_mag=np.linalg.norm(Bm_real)
+    #     Bm_real_mag_store.append(Bm_real_mag)
+    # Bm_real_mag=np.mean(Bm_real_mag_store)
+    # print(Bm_real_mag_store)
 
-    B0_axis=magnetic_field(np.array([0,0,0]), 0, B0, B0_space)
-    B0_axis_mag=np.linalg.norm(B0_axis)
+    # B0_axis=magnetic_field(np.array([0,0,0]), B0, B0_space)
+    # B0_axis_mag=np.linalg.norm(B0_axis)
 
-    Bm_th_mag=B0_axis_mag/np.sin(theta_cone)**2
+    # Bm_th_mag=B0_axis_mag/np.sin(theta_cone)**2
 
-    print(Bm_real_mag,Bm_th_mag)
-    # quit()
-    print(theta_cone*180/np.pi)
+    # print(Bm_real_mag,Bm_th_mag)
+    # # quit()
+    # print(theta_cone*180/np.pi)
 
 
+    B0=1
+    B2=0.5
     # NumericalS trajectory
-    xs_num, vs_num = simulate(x0, v0, q, m, dt, nsteps,B0,E0,B0_space)
+    xs_num, vs_num = simulate(x0, v0, q, m, dt, nsteps,B0,E0,B2)
     # print(xs_num)
 
     plot_trajectory_mirror(xs_num,t)

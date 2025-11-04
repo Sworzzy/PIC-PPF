@@ -7,13 +7,15 @@ import numpy as np
 # -------------------------------------------------
 
 def plot_trajectory_mirror(xs_num,t):
-    plt.figure()
-    plt.scatter(xs_num[:,2], xs_num[:,1], c=t, cmap='viridis', s=5)  # s controls point size
-    plt.colorbar(label='Time')
-    plt.xlabel('z')
-    plt.ylabel('y')
-    plt.xlim(-2000,2000)
-    plt.grid()
+    fig=plt.figure()
+    ax = fig.add_subplot(projection='3d')
+    # ax.scatter(xs_num[:,2], xs_num[:,1], xs_num[:,0], c=t, cmap='viridis', s=5)  # s controls point size
+    ax.scatter(xs_num[:,2], xs_num[:,1], xs_num[:,0], c=t, cmap='viridis', s=5)  # s controls point size
+    # plt.colorbar(label='Time')
+    ax.set_xlabel('z')
+    ax.set_ylabel('y')
+    # ax.set_xlim(-2000,2000)
+    ax.grid()
     plt.show()
 
 def plot_trajectory(xs, vs, step=5,axis=[0,1]):

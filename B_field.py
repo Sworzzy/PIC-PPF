@@ -31,6 +31,10 @@ class MagneticField:
 
     
         B=self.B_field_lines(self.Z,self.R,self.k,self.zc)
+
+        # plt.plot(self.Z[0,0,:],B[0,0,:])
+        # plt.show()
+        # quit()
    
 
 
@@ -40,9 +44,9 @@ class MagneticField:
         magnitude=np.sqrt(Br**2+Bt**2+Bz**2)
         magnitude[magnitude == 0] = 1
 
-        # Br/=magnitude
-        # Bz/=magnitude
-        # Bt/=magnitude
+        Br/=magnitude
+        Bz/=magnitude
+        Bt/=magnitude
 
         Bz[:Br.shape[0]//2,:,:]*=-1  #inverser le sens du champ magnétique dans la moitié inférieure
         Br[:Br.shape[0]//2,:,:]*=-1  #inverser le sens du champ magnétique dans la moitié inférieure
@@ -94,16 +98,55 @@ class MagneticField:
         gradient_magnitude = np.sqrt(np.sum(gradient_tensor**2, axis=(0, 1)))
         return gradient_magnitude
 
-
+def new_magnetic_field(r,theta,z,B0,B1,B2):
+    """Return B(x,t) as a numpy array"""
+    return -B2*r*z, B2*np.zeros_like(theta), B0+B2*(z**2-0.5*r**2)
+    # return -B2*x*z,-B2*y**z,B2*(z**2-0.5*x**2-0.5*y**2)+B0-2*B1*z
+    return -B2*np.sqrt(x**2+y**2)*z*np.cos(Theta),-B2*np.sqrt(x**2+y**2)*z*np.sin(Theta),B2*(z**2-0.5*x**2-0.5*y**2)+B0-2*B1*z
+    return B0*np.array([-x[0]*x[2],-x[1]*x[2],x[2]**2-0.5*x[0]**2-0.5*x[1]**2])
 
 def main():
 
-    z=np.linspace(-2000,2000,25)
+    # z=np.linspace(-2000,2000,50)
+    z=np.linspace(-2,2,20)
     # r=np.linspace(0.1,1500,15)
     # theta=np.linspace(0,2*np.pi,4)
 
-    x=np.linspace(-1500,1500,10)
-    y=np.linspace(-1500,1500,10)
+    # x=np.linspace(-1,1,10)
+    # y=np.linspace(-1,1,10)
+
+    r=np.linspace(0,1,20)
+    theta=np.linspace(0,2*np.pi,20)
+
+    R,Theta,Zcyl=np.meshgrid(r,theta,z,indexing='ij')
+    # X,Y,Z=np.meshgrid(x,y,z,indexing='ij')
+    X=R * np.cos(Theta)
+    Y=R * np.sin(Theta)
+    Z=Zcyl
+
+    # Bx,By,Bz=new_magnetic_field(X,Y,Z,Theta,1,0,0.5)
+    Br,Bt,Bzcyl=new_magnetic_field(R,Theta,Zcyl,1,0,0.5)
+
+    Bx=Br*np.cos(Theta)-Bt*np.sin(Theta)
+    By=Br*np.sin(Theta)+Bt*np.cos(Theta)
+    Bz=Bzcyl
+
+    e=Z.shape[0]//2
+    fig=plt.figure()
+    # ax=fig.add_subplot(111, projection='3d')
+    plt.quiver(Z[e,:,:],Y[e,:,:],Bz[e,:,:],By[e,:,:],color='black',label='Magnetic Field Vectors')
+    # plt.quiver(Z[:,e,:],X[:,e,:],Bz[:,e,:],Bx[:,e,:],color='black',label='Magnetic Field Vectors')
+    # ax.quiver(X,Y,Z,Bx,By,Bz,color='black',label='Magnetic Field Vectors')
+    # ax.quiver(R,Theta,Zcyl,Br,Bt,Bzcyl,color='black',label='Magnetic Field Vectors')
+    # plt.quiver(Zcyl[:,e,:],R[:,e,:],Bzcyl[:,e,:],Br[:,e,:],color='black',label='Magnetic Field Vectors')
+    plt.xlabel('x')
+    plt.ylabel('y')
+    # ax.set_zlabel('z')
+    plt.title('Magnetic Field Vectors in y-z plane')
+    plt.legend()
+    plt.grid()
+    plt.show()
+    quit()
 
     k=0.01
     zc=1000
@@ -123,16 +166,9 @@ def main():
     print(x.shape,y.shape,z.shape)
     print(Bx.shape,By.shape,Bz.shape)
 
+
     e=1
 
-    fig=plt.figure(figsize=(20,20))
-    ax=fig.add_subplot(111, projection='3d')
-    # ax.quiver(X[:,e,:],Y[:,e,:],Z[:,e,:],Bx[:,e,:],By[:,e,:],Bz[:,e,:],color='black',label='Magnetic Field Vectors',length=100,linewidth=2,arrow_length_ratio=0.5,normalize=True)
-    ax.quiver(X[:,:,:],Y[:,:,:],Z[:,:,:],Bx[:,:,:],By[:,:,:],Bz[:,:,:],color='black',label='Magnetic Field Vectors',length=100,linewidth=2,arrow_length_ratio=0.5,normalize=True)
-    plt.xlabel('x')
-    plt.ylabel('y')
-    ax.set_zlabel('z')
-    # plt.show()
 
     plt.figure()
     plt.pcolormesh(Z[:,e,:],X[:,e,:],gradient_magnitude[:,e,:],cmap='viridis')
@@ -144,6 +180,22 @@ def main():
     plt.legend()
     # plt.savefig('B_field_mirror.png')
     plt.show()
+
+
+
+
+
+
+
+
+    fig=plt.figure(figsize=(20,20))
+    ax=fig.add_subplot(111, projection='3d')
+    # ax.quiver(X[:,e,:],Y[:,e,:],Z[:,e,:],Bx[:,e,:],By[:,e,:],Bz[:,e,:],color='black',label='Magnetic Field Vectors',length=100,linewidth=2,arrow_length_ratio=0.5,normalize=True)
+    ax.quiver(X[:,:,:],Y[:,:,:],Z[:,:,:],Bx[:,:,:],By[:,:,:],Bz[:,:,:],color='black',label='Magnetic Field Vectors',length=100,linewidth=2,arrow_length_ratio=0.5,normalize=True)
+    plt.xlabel('x')
+    plt.ylabel('y')
+    ax.set_zlabel('z')
+    # plt.show()
     quit()
     plt.figure()
     plt.pcolormesh(Z[:,e,:],R[:,e,:],gradient_magnitude[:,e,:],cmap='viridis')
