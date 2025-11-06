@@ -92,7 +92,7 @@ def plot_trajectory_3d(xs, vs, step=5):
 # -------------------------------------------------
 # Plot comparing numeric and analytic solutions ---
 # -------------------------------------------------
-def plot_compare(x_num, vs_num, x_an, v_an, step=8, show_arrows=True):
+def plot_compare(x_num, vs_num, x_an, v_an, step=8, show_arrows=True, title='Numeric (scatter) vs Analytic (line) - xy projection', src="fig.pdf"):
     """
     Plot numeric scatter vs analytic curve (xy-projection), plus velocity arrows.
     x_num: numeric positions shape (N,3)
@@ -103,10 +103,10 @@ def plot_compare(x_num, vs_num, x_an, v_an, step=8, show_arrows=True):
     fig, ax = plt.subplots(figsize=(7,7))
 
     # Numeric scatter
-    ax.scatter(x_num[:,0], x_num[:,1], s=20, c='C0', label='numeric (Boris)')
+    ax.scatter(x_num[:,0], x_num[:,1], s=20, c='C0', label=r'$x_\mathrm{num}$')
 
     # Analytic curve
-    ax.scatter(x_an[:,0], x_an[:,1], s=20, c='C1', label='analytic')
+    ax.scatter(x_an[:,0], x_an[:,1], s=20, c='C1', label=r'$x_\mathrm{an}$')
 
     # initial points markers
     ax.scatter(x_num[0,0], x_num[0,1], marker='o', s=60, facecolors='none', edgecolors='k', label='start')
@@ -117,22 +117,22 @@ def plot_compare(x_num, vs_num, x_an, v_an, step=8, show_arrows=True):
             x_num[::step,0], x_num[::step,1],
             vs_num[::step,0], vs_num[::step,1],
             angles='xy', scale_units='xy', scale=8, width=0.004,
-            label='numeric v', alpha=0.9
+            label=r'$v_{num}$', alpha=0.9
         )
         # analytic arrows (sampled, slightly shifted so they are visible)
         ax.quiver(
             x_an[::step,0], x_an[::step,1],
             v_an[::step,0], v_an[::step,1],
             angles='xy', scale_units='xy', scale=8, width=0.006,
-            label='analytic v', alpha=0.6
+            label=r'$v_\mathrm{an}$', alpha=0.6
         )
 
     ax.set_xlabel('x')
     ax.set_ylabel('y')
     ax.set_aspect('equal', adjustable='box')
     ax.legend()
-    ax.set_title('Numeric (scatter) vs Analytic (line) - xy projection')
-
+    ax.set_title(title)
+    plt.savefig(src, format="pdf")
     plt.show()
 
 def plot_errors(times, diff) :
@@ -149,7 +149,7 @@ def plot_errors(times, diff) :
     ax.set_title('Error vs time')
     plt.show()
 
-def plot_time_kinetic_energy(times, m, vs_num) :
+def plot_time_kinetic_energy(times, m, vs_num, src="fig.pdf") :
     v_norm = np.linalg.norm(vs_num, axis=1)
     Ek_x = 0.5 * m * vs_num[:,0]**2
     Ek_y = 0.5* m * vs_num[:,1]**2
@@ -164,4 +164,5 @@ def plot_time_kinetic_energy(times, m, vs_num) :
     plt.xlabel('time')
     plt.title('Kinetic energy vs time')
     plt.legend(loc='lower left', bbox_to_anchor=(1, 0.5))
+    plt.savefig(src, format="pdf")
     plt.show()
